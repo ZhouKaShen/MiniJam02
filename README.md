@@ -1,6 +1,7 @@
 # MiniJam02
 
-Zhou Ka Shen
-Felipe Zhu Zhang
-Gustavo Delinski Tavares
-Pedro Antonio
+<h1>Integrantes</h1>
+Zhou Ka Shen<br>
+Felipe Zhu Zhang<br>
+Gustavo Delinski Tavares<br>
+Pedro Antonio<br>
