@@ -17,6 +17,8 @@ let fishArray = [];
 let isPopping = false;
 let popTimer = 0;
 
+let floatingTexts = [];
+
 // Pixel font em estilo retrô (você pode trocar para sua fonte pixel)
 function preload() {
    bubbleImg = loadImage('bubble.png');
@@ -62,6 +64,7 @@ function draw() {
   drawUpgradePanel();     // direita
   drawBPS();
   autoClicker();
+  drawFloatingTexts();
 
   if (isPopping) {
     popTimer--;
@@ -123,6 +126,22 @@ function drawFish() {
       f.x = width + random(100, 200);  // reaparece fora da tela à direita
       f.y = random(50, height - 50);   // nova altura aleatória
       f.speed = random(1, 2);          // nova velocidade aleatória
+    }
+  }
+}
+
+function drawFloatingTexts() {
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    let ft = floatingTexts[i];
+    fill(255, ft.alpha);
+    textSize(12);
+    text("+ " + ft.value, ft.x, ft.y);
+
+    ft.y -= 0.5;         // sobe
+    ft.alpha -= 3;       // fade out
+
+    if (ft.alpha <= 0) {
+      floatingTexts.splice(i, 1); // remove quando some
     }
   }
 }
@@ -205,7 +224,16 @@ function mousePressed() {
     score += clickPower;
     isPopping = true;
     popTimer = 5;
-  }
+
+  // Adiciona texto flutuante
+  floatingTexts.push({
+    x: bubbleX,
+    y: bubbleY + floatOffset - 20,
+    value: clickPower,
+    alpha: 255
+  });
+}
+
 
   // Botão upgrade de clique (direita)
   if (mouseX > 620 && mouseX < 770 && mouseY > 100 && mouseY < 140) {
