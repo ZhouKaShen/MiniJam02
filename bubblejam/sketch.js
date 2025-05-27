@@ -1,4 +1,5 @@
 let bubbleImg, fishImg, seahorseImg;
+let fishImg2, fishImg3;
 let pixelFont;
 let bubbleX, bubbleY;
 let bubbleSize = 100;
@@ -13,7 +14,7 @@ let seahorseUpgradeLevel = 1;
 let seahorseArray = [];
 let seahorseBubbles = [];
 
-let score = 0;
+let score = 100000;
 let clickPower = 1;
 
 let fishCount = 0;
@@ -29,6 +30,8 @@ let popTimer = 0;
 function preload() {
    bubbleImg = loadImage('bubble.png');
   fishImg = loadImage('fish.png');
+  fish2Img = loadImage('fish2.png');
+  fish3Img = loadImage('fish3.png');
   pixelFont = loadFont('pixelFont.ttf');
   seahorseImg = loadImage('seahorse.png');
   
@@ -125,8 +128,18 @@ function drawFish() {
   for (let i = 0; i < fishArray.length; i++) {
     let f = fishArray[i];
 
-    // Desenha peixe virado para a esquerda corretamente
-    image(fishImg, f.x, f.y, 40, 20);
+     // Seleciona a imagem com base no nível de upgrade
+    let currentFishImg;
+    if (fishUpgradeLevel === 1) {
+      currentFishImg = fishImg;
+    } else if (fishUpgradeLevel === 2) {
+      currentFishImg = fish2Img;
+    } else {
+      currentFishImg = fish3Img;
+    }
+
+    // Desenha peixe com a imagem correta
+    image(currentFishImg, f.x, f.y, 40, 20);
 
     // Movimento da direita para a esquerda
     f.x -= f.speed;
@@ -168,7 +181,7 @@ function drawFishUpgradePanel() {
     upgradeLabel = "UPGRADE PEIXE x2";
     upgradeCost = 1000;
   } else {
-    upgradeLabel = "MAX LEVEL";
+    upgradeLabel = "MÁXIMO ALCANÇADO";
   }
 
   if (fishUpgradeLevel <= 2) {
@@ -176,7 +189,7 @@ function drawFishUpgradePanel() {
   } else {
     fill(255);
     textSize(8);
-    text(upgradeLabel, 100, 120);
+    drawPixelButton(20, 130, 160, 40, upgradeLabel);
   }
   
   
@@ -193,13 +206,13 @@ function drawFishUpgradePanel() {
     seahorseUpgradeLabel = "UPGRADE CM  x20";
     seahorseUpgradeCost = 5000;
   } else {
-    seahorseUpgradeLabel = "MAX LEVEL";
+    seahorseUpgradeLabel = "MÁXIMO ALCANÇADO";
   }
 
   if (seahorseUpgradeLevel <= 3) {
     drawPixelButton(20, 190, 160, 30, seahorseUpgradeLabel, seahorseUpgradeCost);
   } else {
-    text(seahorseUpgradeLabel, 100, 175);
+    drawPixelButton(20, 190, 160, 40, seahorseUpgradeLabel);
   }
 }
 
