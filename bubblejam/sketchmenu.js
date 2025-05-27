@@ -2,6 +2,13 @@ let pixelFont;
 let bubbleImg;
 let tela;
 let efeito;
+let faseTransicao = null;
+let tempoInicioTransicao = 0;
+let tempoInicioBubble;
+let estadoBubble = "esperando"; // "esperando", "fadeIn", "ativo", "fadeOut"
+let alphaBubble = 0;
+let bubbleX, bubbleY;
+
 
 function preload() {
   bubbleImg = loadImage('bubble.png');
@@ -17,6 +24,10 @@ function lore() {
       
 }
 
+function cookie() {
+  image(bubbleImg, )
+}
+
 
 function setup() {
   createCanvas(800, 400);
@@ -27,6 +38,7 @@ function setup() {
   alphaPlay = 0
   alphaCookie = 0
   alphaLore = 0
+  tempoInicioBubble = millis();
   
 }
 
@@ -57,19 +69,23 @@ function creditos() {
 
 function mousePressed() {
   if (mouseX > 300 && mouseX < 500 && mouseY > 250 && mouseY < 315 && tela === "menu") {
-    tela = "creditos"
-    alphaCreditos = 0
-  }
-  
+    tela = "creditos";
+    alphaCreditos = 0;
+  } 
   else if (mouseX > 320 && mouseX < 480 && mouseY > 250 && mouseY < 280 && tela === "creditos") {
-    tela = "menu"
-  }
-  
+    tela = "menu";
+  } 
   else if (mouseX > 300 && mouseX < 500 && mouseY > 150 && mouseY < 220 && tela === "menu") {
-    tela = "jogo"
-    
+    tela = "jogo";
+    alphaPlay = 0;
+    faseTransicao = "in";
   }
-  
+  if (estadoBubble === "ativo") {
+  let d = dist(mouseX, mouseY, bubbleX + 25, bubbleY + 25); // Considerando centro
+  if (d < 25) {
+    estadoBubble = "fadeOut";
+  }
+}
 }
 
 function titulo() {
@@ -100,28 +116,68 @@ function drawWaterBackground() {
 function draw() {
   drawWaterBackground();
 
-  
-  
-  if(tela === "menu") {
+  if (tela === "menu") {
     titulo(); 
-}
-  else if(tela === "creditos") { creditos(); }
+  } 
+  else if (tela === "creditos") {
+    creditos(); 
+  } 
   else if (tela === "jogo") {
-    fill(0,0 ,0 ,alphaPlay)
-    rect(-10,-100,1000,1000)
     image(efeito, teste.x, teste.y, 900, 900);
-    teste.add(testevel)
-    
-    if (alphaPlay < 255) {
-    alphaPlay += 5;
-  }
-    if (alphaPlay > 0) {
-      alphaPlay -= 5;
+    teste.add(testevel);
+
+    // Transição com fade
+    fill(0, 0, 0, alphaPlay);
+    rect(0, 0, width, height);
+
+    if (faseTransicao === "in") {
+      if (alphaPlay < 255) {
+        alphaPlay += 3;
+      } else {
+        faseTransicao = "espera";
+        tempoInicioTransicao = millis(); // Marca tempo para esperar
+      }
+    } 
+    else if (faseTransicao === "espera") {
+      if (millis() - tempoInicioTransicao > 1000) {
+        faseTransicao = "out";
+      }
+    } 
+    else if (faseTransicao === "out") {
+      if (alphaPlay > 0) {
+        alphaPlay -= 5;
+      }
     }
+    // Gerenciamento da bolha "especial"
+let tempoAgora = millis();
+
+if (estadoBubble === "esperando") {
+  if (tempoAgora - tempoInicioBubble >= 40000) {
+    // 40 segundos se passaram
+    estadoBubble = "fadeIn";
+    bubbleX = random(50, width - 50);
+    bubbleY = random(50, height - 50);
+  }
+} else if (estadoBubble === "fadeIn") {
+  if (alphaBubble < 255) {
+    alphaBubble += 5;
+  } else {
+    estadoBubble = "ativo";
+  }
+} else if (estadoBubble === "fadeOut") {
+  if (alphaBubble > 0) {
+    alphaBubble -= 5;
+  } else {
+    estadoBubble = "esperando";
+    tempoInicioBubble = millis(); // Reinicia o ciclo
+  }
+}
+
+if (estadoBubble !== "esperando") {
+  tint(255, alphaBubble);
+  image(bubbleImg, bubbleX, bubbleY, 50, 50);
+  noTint(); // Reseta o tint para outras imagens
+}
 
   }
- 
-  
-  
-
 }
