@@ -1,9 +1,17 @@
-let bubbleImg, fishImg;
+let bubbleImg, fishImg, seahorseImg;
 let pixelFont;
 let bubbleX, bubbleY;
 let bubbleSize = 100;
 let floatOffset = 0;
 let floatSpeed = 0.05;
+let floatingTexts = [];
+
+
+let seahorseCount = 0;
+let seahorsePower = 5;
+let seahorseUpgradeLevel = 1;
+let seahorseArray = [];
+let seahorseBubbles = [];
 
 let score = 0;
 let clickPower = 1;
@@ -17,13 +25,13 @@ let fishArray = [];
 let isPopping = false;
 let popTimer = 0;
 
-let floatingTexts = [];
-
 // Pixel font em estilo retrô (você pode trocar para sua fonte pixel)
 function preload() {
    bubbleImg = loadImage('bubble.png');
   fishImg = loadImage('fish.png');
   pixelFont = loadFont('pixelFont.ttf');
+  seahorseImg = loadImage('seahorse.png');
+  
 }
 
 function setup() {
@@ -58,7 +66,9 @@ function draw() {
   floatOffset = sin(frameCount * floatSpeed) * 10;
 
   drawScore();
-  drawFish();             // peixe atrás da bolha
+  drawFish(); // peixe atrás da bolha
+  drawSeahorses(); // cavalos-marinhos com animação e bolhas
+  updateSeahorseBubbles(); // rastro de bolhas
   drawFishUpgradePanel(); // agora por cima dos peixes            // peixe atrás da bolha
   drawBubble();
   drawUpgradePanel();     // direita
@@ -95,7 +105,7 @@ function drawScore() {
 function drawBPS() {
   fill(255);
   textSize(10);  // menor que antes
-  let bps = fishCount * fishPower;
+  let bps = fishCount * fishPower + seahorseCount * seahorsePower;
   text("Bolhas por segundo: " + nf(bps, 1, 1), width / 2, 45);
 }
 
@@ -130,6 +140,108 @@ function drawFish() {
   }
 }
 
+// Área de upgrade dos peixes (canto esquerdo)
+function drawFishUpgradePanel() {
+  fill(0, 0, 50, 180);
+  noStroke();
+  rect(0, 0, 200, height);
+
+  fill(255);
+  textSize(10);
+  text("UPGRADES MARÍTIMOS", 100, 30);
+
+  textSize(8);  // menor para alinhar melhor com botão
+  text("PEIXES: " + fishCount, 100, 55);
+  text("MULTIPLICADOR: x" + fishPower, 100, 70);
+  textSize(8);
+  text("CAVALOS MARINHOS: " + seahorseCount, 100, 90);
+  text("MULTIPLICADOR: x" + seahorsePower, 100, 105);
+
+
+  let upgradeLabel = "";
+  let upgradeCost = 0;
+
+  if (fishUpgradeLevel === 1) {
+    upgradeLabel = "UPGRADE PEIXE x1.5";
+    upgradeCost = 500;
+  } else if (fishUpgradeLevel === 2) {
+    upgradeLabel = "UPGRADE PEIXE x2";
+    upgradeCost = 1000;
+  } else {
+    upgradeLabel = "MAX LEVEL";
+  }
+
+  if (fishUpgradeLevel <= 2) {
+    drawPixelButton(20, 130, 160, 40, upgradeLabel, upgradeCost);
+  } else {
+    fill(255);
+    textSize(8);
+    text(upgradeLabel, 100, 120);
+  }
+  
+  
+  let seahorseUpgradeLabel = "";
+  let seahorseUpgradeCost = 0;
+
+  if (seahorseUpgradeLevel === 1) {
+    seahorseUpgradeLabel = "UPGRADE CM x10";
+    seahorseUpgradeCost = 1500;
+  } else if (seahorseUpgradeLevel === 2) {
+    seahorseUpgradeLabel = "UPGRADE CM x15";
+    seahorseUpgradeCost = 2500;
+  } else if (seahorseUpgradeLevel === 3) {
+    seahorseUpgradeLabel = "UPGRADE CM  x20";
+    seahorseUpgradeCost = 5000;
+  } else {
+    seahorseUpgradeLabel = "MAX LEVEL";
+  }
+
+  if (seahorseUpgradeLevel <= 3) {
+    drawPixelButton(20, 190, 160, 30, seahorseUpgradeLabel, seahorseUpgradeCost);
+  } else {
+    text(seahorseUpgradeLabel, 100, 175);
+  }
+}
+
+// Área upgrades clique e compra peixes (canto direito)
+function drawUpgradePanel() {
+  fill(0, 0, 50, 180);
+  noStroke();
+  rect(600, 0, 200, height);
+
+  fill(255);
+  textSize(12);
+  text("COMPRAR", 700, 30);
+  textSize(10);
+  text("Clique: " + clickPower, 700, 55);
+
+  // Botão upgrade clique
+  let upgradeCost = clickPower * 10;
+  drawPixelButton(620, 100, 150, 40, "COMPRAR CLIQUES", upgradeCost);
+
+  // Comprar peixe
+  let fishCost = 50 + fishCount * 25;
+  drawPixelButton(620, 160, 150, 40, "COMPRAR PEIXE", fishCost);
+  
+  let seahorseCost = 150 + seahorseCount * 75;
+  drawPixelButton(620, 220, 150, 40, "COMPRAR CAVALO-MARINHO", seahorseCost);
+}
+
+// Auto clique dos peixes
+function autoClicker() {
+  let gain = (fishCount * fishPower + seahorseCount * seahorsePower) / 60;
+  score += gain;
+}
+
+// Adiciona peixe no array
+function addFish() {
+  fishArray.push({
+    x: 600 + random(50, 200),     // começa do lado direito da área central
+    y: random(50, height - 50),
+    speed: random(1, 2)
+  });
+}
+
 function drawFloatingTexts() {
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     let ft = floatingTexts[i];
@@ -144,78 +256,6 @@ function drawFloatingTexts() {
       floatingTexts.splice(i, 1); // remove quando some
     }
   }
-}
-
-// Área de upgrade dos peixes (canto esquerdo)
-function drawFishUpgradePanel() {
-  fill(0, 0, 50, 180);
-  noStroke();
-  rect(0, 0, 200, height);
-
-  fill(255);
-  textSize(10);
-  text("UPGRADES MARÍTIMOS", 100, 30);
-
-  textSize(8);  // menor para alinhar melhor com botão
-  text("PEIXES: " + fishCount, 100, 55);
-  text("MULTIPLICADOR: x" + fishPower, 100, 70);
-
-  let upgradeLabel = "";
-  let upgradeCost = 0;
-
-  if (fishUpgradeLevel === 1) {
-    upgradeLabel = "UPGRADE PEIXES x1.5";
-    upgradeCost = 500;
-  } else if (fishUpgradeLevel === 2) {
-    upgradeLabel = "UPGRADE PEIXES x2";
-    upgradeCost = 1000;
-  } else {
-    upgradeLabel = "MÁXIMO ALCANÇADO";
-  }
-
-  if (fishUpgradeLevel <= 2) {
-    drawPixelButton(20, 100, 160, 40, upgradeLabel, upgradeCost);
-  } else {
-    fill(255);
-    textSize(8);
-    text(upgradeLabel, 100, 120);
-  }
-}
-
-// Área upgrades clique e compra peixes (canto direito)
-function drawUpgradePanel() {
-  fill(0, 0, 50, 180);
-  noStroke();
-  rect(600, 0, 200, height);
-
-  fill(255);
-  textSize(12);
-  text("UPGRADES", 700, 30);
-  textSize(10);
-  text("Clique: " + clickPower, 700, 55);
-
-  // Botão upgrade clique
-  let upgradeCost = clickPower * 10;
-  drawPixelButton(620, 100, 150, 40, "UPGRADE CLIQUE", upgradeCost);
-
-  // Comprar peixe
-  let fishCost = 50 + fishCount * 25;
-  drawPixelButton(620, 160, 150, 40, "COMPRAR PEIXE", fishCost);
-}
-
-// Auto clique dos peixes
-function autoClicker() {
-  let gain = fishCount * fishPower / 60; // frameRate ~60, assim distribui por frame
-  score += gain;
-}
-
-// Adiciona peixe no array
-function addFish() {
-  fishArray.push({
-    x: 600 + random(50, 200),     // começa do lado direito da área central
-    y: random(50, height - 50),
-    speed: random(1, 2)
-  });
 }
 
 function mousePressed() {
@@ -233,7 +273,6 @@ function mousePressed() {
     alpha: 255
   });
 }
-
 
   // Botão upgrade de clique (direita)
   if (mouseX > 620 && mouseX < 770 && mouseY > 100 && mouseY < 140) {
@@ -254,16 +293,105 @@ function mousePressed() {
     }
   }
 
-  // Upgrade único de peixe (esquerda)
-  if (mouseX > 20 && mouseX < 180 && mouseY > 100 && mouseY < 140) {
-    if (fishUpgradeLevel === 1 && score >= 500) {
-      score -= 500;
-      fishPower = 1.5;
-      fishUpgradeLevel = 2;
-    } else if (fishUpgradeLevel === 2 && score >= 1000) {
-      score -= 1000;
-      fishPower = 2;
-      fishUpgradeLevel = 3;
+   // Upgrade dos peixes (esquerda)
+  if (mouseX > 20 && mouseX < 180 && mouseY > 130 && mouseY < 170 && fishUpgradeLevel <= 2) {
+    let upgradeCost = fishUpgradeLevel === 1 ? 500 : 1000;
+    if (score >= upgradeCost) {
+      score -= upgradeCost;
+      fishUpgradeLevel++;
+      if (fishUpgradeLevel === 2) {
+        fishPower = 1.5;
+      } else if (fishUpgradeLevel === 3) {
+        fishPower = 2;
+      }
+    }
+  }
+
+  // Upgrade dos cavalos-marinhos (esquerda)
+  if (mouseX > 20 && mouseX < 180 && mouseY > 190 && mouseY < 220 && seahorseUpgradeLevel <= 3) {
+    let seahorseUpgradeCost = 0;
+    if (seahorseUpgradeLevel === 1) {
+      seahorseUpgradeCost = 1500;
+    } else if (seahorseUpgradeLevel === 2) {
+      seahorseUpgradeCost = 2500;
+    } else if (seahorseUpgradeLevel === 3) {
+      seahorseUpgradeCost = 5000;
+    }
+
+    if (score >= seahorseUpgradeCost) {
+      score -= seahorseUpgradeCost;
+      seahorseUpgradeLevel++;
+      if (seahorseUpgradeLevel === 2) {
+        seahorsePower = 10;
+      } else if (seahorseUpgradeLevel === 3) {
+        seahorsePower = 15;
+      } else if (seahorseUpgradeLevel === 4) {
+        seahorsePower = 20;
+      }
+    }
+  }
+
+  // Comprar cavalo-marinho (direita)
+  if (mouseX > 620 && mouseX < 770 && mouseY > 220 && mouseY < 260) {
+    let seahorseCost = 150 + seahorseCount * 75;
+    if (score >= seahorseCost) {
+      score -= seahorseCost;
+      seahorseCount++;
+      addSeahorse();
+    }
+  }
+}
+
+// Adiciona cavalo-marinho com posição e animação
+function addSeahorse() {
+  seahorseArray.push({
+    x: width + random(50, 150),
+    y: random(50, height - 50),
+    speed: random(0.5, 1),
+    offset: random(TWO_PI) // Offset aleatório para o movimento de flutuação
+  });
+}
+
+// Desenha os cavalos-marinhos e anima
+function drawSeahorses() {
+  for (let i = 0; i < seahorseArray.length; i++) {
+    let s = seahorseArray[i];
+
+    // Calcula o deslocamento vertical com base no tempo e em um offset único para cada cavalo-marinho
+    let yOffset = sin(frameCount * 0.05 + s.offset) * 10;
+
+    // Desenha o cavalo-marinho com o deslocamento vertical
+    image(seahorseImg, s.x, s.y + yOffset, 40, 40);
+
+    // Move o cavalo-marinho para a esquerda
+    s.x -= s.speed;
+
+    // Adiciona bolhas periodicamente
+    if (frameCount % 15 === 0) {
+      seahorseBubbles.push({ x: s.x, y: s.y + yOffset, size: 5, alpha: 255 });
+    }
+
+    // Se o cavalo-marinho sair da tela, reposiciona à direita
+    if (s.x < -50) {
+      s.x = width + random(100, 200);
+      s.y = random(50, height - 50);
+      s.speed = random(0.5, 1);
+      s.offset = random(TWO_PI); // Garante um novo offset para variar o movimento
+    }
+  }
+}
+
+// Bolhas flutuando dos cavalos-marinhos
+function updateSeahorseBubbles() {
+  for (let i = seahorseBubbles.length - 1; i >= 0; i--) {
+    let b = seahorseBubbles[i];
+    fill(200, 200, 255, b.alpha);
+    noStroke();
+    ellipse(b.x, b.y, 10);
+    b.y -= 1;
+    b.alpha -= 2;
+    if (b.alpha <= 0) {
+      seahorseBubbles.splice(i, 1);
     }
   }
 }
